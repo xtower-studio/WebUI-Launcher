@@ -8,14 +8,28 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var stateManager = ProcessStateManager()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            switch stateManager.currentState {
+            case .stopped:
+                ProcessControlViewStopped(stateManager: stateManager)
+            case .starting:
+                ProcessControlViewStarting(stateManager: stateManager)
+            case .running:
+                ProcessControlViewRunning(stateManager: stateManager)
+            case .error(let errorMessage):
+                ProcessControlViewError(stateManager: stateManager, errorMessage: errorMessage)
+            }
         }
-        .padding()
+        .frame(minWidth: 750, minHeight: 430) // Enforce minimum window size
+        .onAppear {
+            // Setup AppDelegate connection for proper cleanup
+            if let delegate = NSApplication.shared.delegate as? AppDelegate {
+                delegate.processManager = stateManager.internalProcessManager
+            }
+        }
     }
 }
 
