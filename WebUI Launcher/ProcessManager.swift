@@ -80,4 +80,11 @@ class ProcessManager: ObservableObject {
         process.terminate() // Sends SIGTERM signal
         self.process = nil
     }
+    
+    deinit {
+        // Ensure the process is terminated when the ProcessManager is deallocated
+        if isRunning {
+            stopScript()
+        }
+    }
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var stateManager = ProcessStateManager()
+    @ObservedObject var stateManager: ProcessStateManager
     
     var body: some View {
         Group {
@@ -26,15 +26,9 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 750, minHeight: 430) // Enforce minimum window size
-        .onAppear {
-            // Setup AppDelegate connection for proper cleanup
-            if let delegate = NSApplication.shared.delegate as? AppDelegate {
-                delegate.processManager = stateManager.internalProcessManager
-            }
-        }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(stateManager: ProcessStateManager())
 }
