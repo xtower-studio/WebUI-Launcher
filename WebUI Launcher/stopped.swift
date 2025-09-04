@@ -154,7 +154,7 @@ struct ProcessControlViewStopped: View {
                 .font(.system(size: 80, weight: .bold, design: .default))
                 .foregroundColor(brightRed)
                 .padding(.top, -10)
-                .padding(.leading, -8) // Move text slightly to the left for better alignment
+                .padding(.leading, -4) // Move text slightly to the left for better alignment
                 .brightness(stoppedTextPulse ? 0.1 : 0.0)
                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: stoppedTextPulse)
                 .overlay(
@@ -162,7 +162,7 @@ struct ProcessControlViewStopped: View {
                         .font(.system(size: 80, weight: .bold, design: .default))
                         .foregroundColor(brightRed.opacity(0.3))
                         .blur(radius: 8)
-                        .padding(.leading, -8) // Apply same alignment to blur overlay
+                        .padding(.leading, -4) // Apply same alignment to blur overlay
                         .brightness(stoppedTextPulse ? 0.1 : 0.0)
                         .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: stoppedTextPulse)
                 )
