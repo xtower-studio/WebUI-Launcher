@@ -10,7 +10,8 @@ import Combine
 import AppKit
 import UniformTypeIdentifiers
 
-enum ProcessState {
+enum ProcessState: Equatable {
+    case needsConfiguration // New state for when file path is not set
     case stopped
     case starting
     case running
@@ -18,7 +19,7 @@ enum ProcessState {
 }
 
 class ProcessStateManager: ObservableObject {
-    @Published var currentState: ProcessState = .stopped
+    @Published var currentState: ProcessState = .needsConfiguration  // Start with needsConfiguration as default
     @Published var webuiPath: String = "" {
         didSet {
             // Auto-save to UserDefaults when path changes
@@ -42,6 +43,19 @@ class ProcessStateManager: ObservableObject {
         // Load saved path from UserDefaults
         webuiPath = UserDefaults.standard.string(forKey: "webuiPath") ?? ""
         setupBindings()
+        
+        // Auto-start logic: check if path is set and start immediately
+        checkAndAutoStart()  // Call directly instead of async dispatch
+    }
+    
+    // New method to check configuration and auto-start
+    func checkAndAutoStart() {
+        if webuiPath.isEmpty {
+            currentState = .needsConfiguration
+        } else {
+            // Auto-start the process
+            startProcess()
+        }
     }
     
     private func setupBindings() {
@@ -153,6 +167,10 @@ class ProcessStateManager: ObservableObject {
         
         if panel.runModal() == .OK, let url = panel.url {
             webuiPath = url.path
+            // Auto-start after setting the path
+            if currentState == .needsConfiguration {
+                startProcess()
+            }
         }
     }
     

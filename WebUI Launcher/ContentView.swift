@@ -13,6 +13,8 @@ struct ContentView: View {
     var body: some View {
         Group {
             switch stateManager.currentState {
+            case .needsConfiguration:
+                ProcessControlViewSettings(stateManager: stateManager)
             case .stopped:
                 ProcessControlViewStopped(stateManager: stateManager)
             case .starting:
