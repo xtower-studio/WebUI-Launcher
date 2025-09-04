@@ -1,10 +1,3 @@
-//
-//  settings.swift
-//  WebUI Launcher
-//
-//  Created by Juhyung Park on 9/2/25.
-//
-
 import SwiftUI
 
 struct ProcessControlViewSettings: View {
