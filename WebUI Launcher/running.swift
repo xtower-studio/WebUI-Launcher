@@ -6,6 +6,7 @@ struct ProcessControlViewRunning: View {
     // Animation state variables
     @State private var isVisible = false
     @State private var stopButtonHovered = false
+    @State private var openButtonHovered = false
     @State private var pathButtonHovered = false
     @State private var logUpdateTrigger = false
     @State private var runningTextPulse = false
@@ -166,6 +167,58 @@ struct ProcessControlViewRunning: View {
                         .brightness(runningTextPulse ? 0.1 : 0.0)
                         .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: runningTextPulse)
                 )
+            
+            Button(action: {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0)) {
+                    stateManager.openWebUI()
+                }
+            }) {
+                HStack(spacing: 12) {
+                    Text("Open")
+                        .scaleEffect(openButtonHovered ? 1.1 : 1.0)
+                        .offset(x: openButtonHovered ? -5 : 0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0), value: openButtonHovered)
+                    
+                    Image(systemName: "arrow.up.right.square")
+                        .scaleEffect(openButtonHovered ? 1.2 : 1.0)
+                        .rotationEffect(.degrees(openButtonHovered ? 15 : 0))
+                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: openButtonHovered)
+                }
+                .font(.system(size: 22, weight: .bold, design: .default))
+                .foregroundColor(.white)
+                .padding(.horizontal, 35)
+                .padding(.vertical, 15)
+                .background(
+                    ZStack {
+                        Capsule()
+                            .fill(brightGreen)
+                            .shadow(color: brightGreen.opacity(0.5), radius: openButtonHovered ? 15 : 8, x: 0, y: openButtonHovered ? 6 : 3)
+                        
+                        // Animated gradient overlay
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(openButtonHovered ? 0.3 : 0.15),
+                                        Color.clear
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .animation(.easeInOut(duration: 0.3), value: openButtonHovered)
+                    }
+                )
+                .scaleEffect(openButtonHovered ? 1.05 : 1.0)
+                .rotationEffect(.degrees(openButtonHovered ? 2 : 0))
+                .animation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0), value: openButtonHovered)
+            }
+            .padding(.top, 20)
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                openButtonHovered = hovering
+            }
+
 
             Text(recentLogOutput)
                 .font(.system(size: 13, weight: .regular, design: .monospaced))
