@@ -80,4 +80,14 @@ class ProcessManager: ObservableObject {
         process.terminate() // Sends SIGTERM signal
         self.process = nil
     }
+    
+    deinit {
+        // Ensure process is terminated when ProcessManager is deallocated
+        if isRunning, let process = process {
+            print("ProcessManager deinit: Terminating running process...")
+            process.terminate()
+        }
+        // Clean up the file handle
+        outputPipe.fileHandleForReading.readabilityHandler = nil
+    }
 }

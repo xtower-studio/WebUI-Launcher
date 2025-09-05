@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @StateObject private var stateManager = ProcessStateManager()
@@ -31,6 +32,11 @@ struct ContentView: View {
             if let delegate = NSApplication.shared.delegate as? AppDelegate {
                 delegate.processManager = stateManager.internalProcessManager
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { notification in
+            // Handle window close - stop the process before window closes
+            print("Window is closing, stopping script...")
+            stateManager.stopProcess()
         }
     }
 }

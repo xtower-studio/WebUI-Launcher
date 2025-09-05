@@ -17,6 +17,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("Application is terminating, stopping script...")
         processManager?.stopScript()
     }
+    
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // This makes the app quit when the last window is closed (like iOS behavior)
+        // If you prefer the app to stay running without windows, return false instead
+        print("Last window closed, stopping script...")
+        processManager?.stopScript()
+        return true
+    }
 }
 
 
