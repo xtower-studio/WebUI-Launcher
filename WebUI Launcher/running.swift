@@ -7,7 +7,6 @@ struct ProcessControlViewRunning: View {
     @State private var isVisible = false
     @State private var stopButtonHovered = false
     @State private var openButtonHovered = false
-    @State private var pathButtonHovered = false
     @State private var logUpdateTrigger = false
     @State private var runningTextPulse = false
     @State private var statusIndicatorRotation = 0.0
@@ -17,6 +16,9 @@ struct ProcessControlViewRunning: View {
     @State private var textShimmer = false
     @State private var floatingAnimation = false
     @State private var pathFieldFocus = false
+    @State private var pathButtonHovered = false
+    // State for log viewer modal
+    @State private var showLogViewer = false
     
     // Custom colors to match the UI
     private let brightGreen = Color(red: 0.1, green: 0.85, blue: 0.1)
@@ -84,6 +86,10 @@ struct ProcessControlViewRunning: View {
             isVisible = true
             startContinuousAnimations()
             startLogUpdateAnimation()
+        }
+        // Move .sheet here for reliability
+        .sheet(isPresented: $showLogViewer) {
+            LogViewerView(logText: stateManager.logOutput)
         }
     }
 
@@ -219,21 +225,29 @@ struct ProcessControlViewRunning: View {
                 openButtonHovered = hovering
             }
 
-
-            Text(recentLogOutput)
-                .font(.system(size: 13, weight: .regular, design: .monospaced))
-                .foregroundColor(.black.opacity(0.65))
-                .lineSpacing(4)
-                .padding(.top, 30)
-                .frame(maxHeight: 100)
-                .clipped()
-                .opacity(logUpdateTrigger ? 1 : 0.8)
-                .scaleEffect(logUpdateTrigger ? 1 : 0.98)
-                .offset(x: logUpdateTrigger ? 0 : -5)
-                .animation(.spring(response: 0.4, dampingFraction: 0.6), value: logUpdateTrigger)
-                .onChange(of: stateManager.logOutput) {
-                    startLogUpdateAnimation()
-                }
+            // Make log area a Button for better tap reliability
+            Button(action: {
+                showLogViewer = true
+            }) {
+                Text(recentLogOutput)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(.black.opacity(0.65))
+                    .lineSpacing(4)
+                    .padding(.top, 30)
+                    .frame(maxHeight: 100)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.white.opacity(0.001)) // Ensure tappable area
+                    .contentShape(Rectangle())
+                    .clipped()
+                    .opacity(logUpdateTrigger ? 1 : 0.8)
+                    .scaleEffect(logUpdateTrigger ? 1 : 0.98)
+                    .offset(x: logUpdateTrigger ? 0 : -5)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: logUpdateTrigger)
+            }
+            .buttonStyle(.plain)
+            .onChange(of: stateManager.logOutput) {
+                startLogUpdateAnimation()
+            }
         }
     }
 
@@ -304,7 +318,7 @@ struct ProcessControlViewRunning: View {
             stopButtonHovered = hovering
         }
     }
-
+    
     private var pathConfigurationView: some View {
         HStack(spacing: 12) {
             Text(stateManager.webuiPath.isEmpty ? "No path selected" : stateManager.webuiPath)
@@ -326,7 +340,7 @@ struct ProcessControlViewRunning: View {
 
             Button(action: {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0)) {
-                    stateManager.selectWebuiPath()
+                    selectFolder()
                 }
             }) {
                 HStack(spacing: 8) {
@@ -373,6 +387,16 @@ struct ProcessControlViewRunning: View {
             }
         }
     }
+
+    private func selectFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            stateManager.webuiPath = url.path
+        }
+    }
 }
 
 // MARK: - Preview
@@ -381,5 +405,37 @@ struct ProcessControlViewRunning_Previews: PreviewProvider {
     static var previews: some View {
         ProcessControlViewRunning(stateManager: ProcessStateManager())
             .frame(width: 1000, height: 600)
+    }
+}
+
+// MARK: - Log Viewer View
+struct LogViewerView: View {
+    let logText: String
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Full Log Output")
+                    .font(.title2.bold())
+                    .padding()
+                Spacer()
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.gray)
+                }
+                .buttonStyle(.plain)
+                .padding()
+            }
+            Divider()
+            ScrollView {
+                Text(logText)
+                    .font(.system(size: 14, weight: .regular, design: .monospaced))
+                    .foregroundColor(.black)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(minWidth: 600, minHeight: 400)
     }
 }
