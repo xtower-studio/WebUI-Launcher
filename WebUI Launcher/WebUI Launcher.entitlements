@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Enable App Sandbox -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	
+	<!-- Allow user-selected file access (read-only for selected folders) -->
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+	
+	<!-- Allow user-selected file access (read-write for selected folders) -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	
+	<!-- Allow inheritable access to execute processes in user-selected directories -->
+	<key>com.apple.security.inherit</key>
+	<true/>
+	
+	<!-- Allow network access (WebUI typically needs to bind to localhost) -->
+	<key>com.apple.security.network.server</key>
+	<true/>
+	
+	<key>com.apple.security.network.client</key>
+	<true/>
+	
+	<!-- Allow outgoing network connections -->
+	<key>com.apple.security.network.server</key>
+	<true/>
+	
+	<!-- Allow temporary exception for external processes -->
+	<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+	<array>
+		<string>com.apple.system.opendirectoryd.libinfo</string>
+		<string>com.apple.system.logger</string>
+	</array>
+	
+	<!-- Allow spawning child processes -->
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<false/>
+	
+	<!-- Disable JIT for security -->
+	<key>com.apple.security.cs.allow-jit</key>
+	<false/>
+	
+	<!-- Disable dyld environment variables -->
+	<key>com.apple.security.cs.allow-dyld-environment-variables</key>
+	<false/>
+	
+	<!-- Disable debugging -->
+	<key>com.apple.security.cs.debugger</key>
+	<false/>
+</dict>
+</plist>
