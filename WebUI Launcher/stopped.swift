@@ -14,6 +14,8 @@ struct ProcessControlViewStopped: View {
     @State private var isVisible = false
     @State private var startButtonHovered = false
     @State private var pathButtonHovered = false
+    // State for log viewer modal
+    @State private var showLogViewer = false
     @State private var logUpdateTrigger = false
     @State private var stoppedTextPulse = false
     @State private var statusIndicatorRotation = 0.0
@@ -87,6 +89,10 @@ struct ProcessControlViewStopped: View {
             isVisible = true
             startContinuousAnimations()
             startLogUpdateAnimation()
+        }
+        // Sheet for full log viewer
+        .sheet(isPresented: $showLogViewer) {
+            LogViewerView(logText: stateManager.logOutput)
         }
     }
 
@@ -167,20 +173,28 @@ struct ProcessControlViewStopped: View {
                         .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: stoppedTextPulse)
                 )
 
-            Text(stateManager.logOutput.isEmpty ? "Ready to start WebUI process..." : recentLogOutput)
-                .font(.system(size: 13, weight: .regular, design: .monospaced))
-                .foregroundColor(.black.opacity(0.65))
-                .lineSpacing(4)
-                .padding(.top, 30)
-                .frame(maxHeight: 100)
-                .clipped()
-                .opacity(logUpdateTrigger ? 1 : 0.8)
-                .scaleEffect(logUpdateTrigger ? 1 : 0.98)
-                .offset(x: logUpdateTrigger ? 0 : -5)
-                .animation(.spring(response: 0.4, dampingFraction: 0.6), value: logUpdateTrigger)
-                .onChange(of: stateManager.logOutput) {
-                    startLogUpdateAnimation()
-                }
+            Button(action: {
+                showLogViewer = true
+            }) {
+                Text(stateManager.logOutput.isEmpty ? "Ready to start WebUI process..." : recentLogOutput)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(.black.opacity(0.65))
+                    .lineSpacing(4)
+                    .padding(.top, 30)
+                    .frame(maxHeight: 100)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.white.opacity(0.001)) // Ensure tappable area
+                    .contentShape(Rectangle())
+                    .clipped()
+                    .opacity(logUpdateTrigger ? 1 : 0.8)
+                    .scaleEffect(logUpdateTrigger ? 1 : 0.98)
+                    .offset(x: logUpdateTrigger ? 0 : -5)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: logUpdateTrigger)
+            }
+            .buttonStyle(.plain)
+            .onChange(of: stateManager.logOutput) {
+                startLogUpdateAnimation()
+            }
         }
     }
 
@@ -273,7 +287,7 @@ struct ProcessControlViewStopped: View {
 
             Button(action: {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0)) {
-                    stateManager.selectWebuiPath()
+                    selectFolder()
                 }
             }) {
                 HStack(spacing: 8) {
@@ -318,6 +332,17 @@ struct ProcessControlViewStopped: View {
             .onHover { hovering in
                 pathButtonHovered = hovering
             }
+        }
+    }
+
+    private func selectFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            BookmarkManager.saveBookmark(for: url)
+            stateManager.webuiPath = url.path
         }
     }
 }

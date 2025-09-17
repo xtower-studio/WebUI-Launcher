@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ProcessControlViewRunning: View {
     @ObservedObject var stateManager: ProcessStateManager
@@ -394,6 +395,7 @@ struct ProcessControlViewRunning: View {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let url = panel.url {
+            BookmarkManager.saveBookmark(for: url)
             stateManager.webuiPath = url.path
         }
     }
@@ -405,37 +407,5 @@ struct ProcessControlViewRunning_Previews: PreviewProvider {
     static var previews: some View {
         ProcessControlViewRunning(stateManager: ProcessStateManager())
             .frame(width: 1000, height: 600)
-    }
-}
-
-// MARK: - Log Viewer View
-struct LogViewerView: View {
-    let logText: String
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("Full Log Output")
-                    .font(.title2.bold())
-                    .padding()
-                Spacer()
-                Button(action: { dismiss() }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(.gray)
-                }
-                .buttonStyle(.plain)
-                .padding()
-            }
-            Divider()
-            ScrollView {
-                Text(logText)
-                    .font(.system(size: 14, weight: .regular, design: .monospaced))
-                    .foregroundColor(.black)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-        .frame(minWidth: 600, minHeight: 400)
     }
 }

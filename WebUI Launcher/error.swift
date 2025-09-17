@@ -16,6 +16,8 @@ struct ProcessControlViewError: View {
     @State private var resetButtonHovered = false
     @State private var retryButtonHovered = false
     @State private var pathButtonHovered = false
+    // State for log viewer modal
+    @State private var showLogViewer = false
     @State private var logUpdateTrigger = false
     @State private var errorTextPulse = false
     @State private var statusIndicatorRotation = 0.0
@@ -88,6 +90,10 @@ struct ProcessControlViewError: View {
             isVisible = true
             startContinuousAnimations()
             startLogUpdateAnimation()
+        }
+        // Sheet for full log viewer
+        .sheet(isPresented: $showLogViewer) {
+            LogViewerView(logText: stateManager.logOutput)
         }
     }
 
@@ -293,20 +299,28 @@ struct ProcessControlViewError: View {
             .padding(.top, 20)
 
             // Log output for debugging
-            Text(recentLogOutput)
-                .font(.system(size: 13, weight: .regular, design: .monospaced))
-                .foregroundColor(.black.opacity(0.65))
-                .lineSpacing(4)
-                .padding(.top, 30)
-                .frame(maxHeight: 120)
-                .clipped()
-                .opacity(logUpdateTrigger ? 1 : 0.8)
-                .scaleEffect(logUpdateTrigger ? 1 : 0.98)
-                .offset(x: logUpdateTrigger ? 0 : -5)
-                .animation(.spring(response: 0.4, dampingFraction: 0.6), value: logUpdateTrigger)
-                .onChange(of: stateManager.logOutput) {
-                    startLogUpdateAnimation()
-                }
+            Button(action: {
+                showLogViewer = true
+            }) {
+                Text(recentLogOutput)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(.black.opacity(0.65))
+                    .lineSpacing(4)
+                    .padding(.top, 30)
+                    .frame(maxHeight: 100)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.white.opacity(0.001)) // Ensure tappable area
+                    .contentShape(Rectangle())
+                    .clipped()
+                    .opacity(logUpdateTrigger ? 1 : 0.8)
+                    .scaleEffect(logUpdateTrigger ? 1 : 0.98)
+                    .offset(x: logUpdateTrigger ? 0 : -5)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: logUpdateTrigger)
+            }
+            .buttonStyle(.plain)
+            .onChange(of: stateManager.logOutput) {
+                startLogUpdateAnimation()
+            }
         }
     }
 
