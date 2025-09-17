@@ -7,7 +7,6 @@ struct ProcessControlViewRunning: View {
     @State private var isVisible = false
     @State private var stopButtonHovered = false
     @State private var openButtonHovered = false
-    @State private var pathButtonHovered = false
     @State private var logUpdateTrigger = false
     @State private var runningTextPulse = false
     @State private var statusIndicatorRotation = 0.0
@@ -304,7 +303,7 @@ struct ProcessControlViewRunning: View {
             stopButtonHovered = hovering
         }
     }
-
+    
     private var pathConfigurationView: some View {
         HStack(spacing: 12) {
             Text(stateManager.webuiPath.isEmpty ? "No path selected" : stateManager.webuiPath)
@@ -326,7 +325,7 @@ struct ProcessControlViewRunning: View {
 
             Button(action: {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0)) {
-                    stateManager.selectWebuiPath()
+                    selectFolder()
                 }
             }) {
                 HStack(spacing: 8) {
@@ -371,6 +370,17 @@ struct ProcessControlViewRunning: View {
             .onHover { hovering in
                 pathButtonHovered = hovering
             }
+        }
+    }
+
+    private func selectFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            BookmarkManager.saveBookmark(for: url)
+            stateManager.webuiPath = url.path
         }
     }
 }

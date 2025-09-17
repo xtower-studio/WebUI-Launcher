@@ -70,6 +70,60 @@ class ProcessManager: ObservableObject {
         }
     }
 
+    // The function now accepts the folder path
+    func runScript(in folderPath: String) {
+        guard !isRunning else { return }
+
+        let folderURL = URL(fileURLWithPath: folderPath, isDirectory: true)
+        let scriptURL = folderURL.appendingPathComponent("webui.sh")
+
+        // CRITICAL: Start accessing the security-scoped resource.
+        guard folderURL.startAccessingSecurityScopedResource() else {
+            self.output = "Error: Could not gain access to the selected folder. Please select it again."
+            return
+        }
+        
+        process = Process()
+        process?.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process?.arguments = [scriptURL.lastPathComponent]
+        process?.currentDirectoryURL = folderURL
+
+        outputPipe = Pipe()
+        process?.standardOutput = outputPipe
+        process?.standardError = outputPipe
+
+        let fileHandle = outputPipe.fileHandleForReading
+        fileHandle.readabilityHandler = { [weak self] handle in
+            let data = handle.availableData
+            if let newOutput = String(data: data, encoding: .utf8), !newOutput.isEmpty {
+                DispatchQueue.main.async {
+                    self?.output += newOutput
+                }
+            }
+        }
+
+        process?.terminationHandler = { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.isRunning = false
+                self?.output += "\n--- Process Terminated ---\n"
+                self?.outputPipe.fileHandleForReading.readabilityHandler = nil
+                // CRITICAL: Stop accessing when the process is done.
+                folderURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        do {
+            output = "--- Starting WebUI Process ---\n"
+            try process?.run()
+            isRunning = true
+        } catch {
+            output = "Error starting process: \(error.localizedDescription)"
+            isRunning = false
+            // CRITICAL: Stop accessing if the run fails.
+            folderURL.stopAccessingSecurityScopedResource()
+        }
+    }
+
     func stopScript() {
         guard isRunning, let process = process else {
             print("Process is not running or doesn't exist.")

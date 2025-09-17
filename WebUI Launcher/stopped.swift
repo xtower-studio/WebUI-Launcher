@@ -273,7 +273,7 @@ struct ProcessControlViewStopped: View {
 
             Button(action: {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0)) {
-                    stateManager.selectWebuiPath()
+                    selectFolder()
                 }
             }) {
                 HStack(spacing: 8) {
@@ -318,6 +318,17 @@ struct ProcessControlViewStopped: View {
             .onHover { hovering in
                 pathButtonHovered = hovering
             }
+        }
+    }
+
+    private func selectFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            BookmarkManager.saveBookmark(for: url)
+            stateManager.webuiPath = url.path
         }
     }
 }
